@@ -1,0 +1,5050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GR Cup Race Intelligence Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            font-size: 18px;
+            opacity: 0.95;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s;
+            border-top: 4px solid #667eea;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .metric-card.m2 { border-top-color: #f093fb; }
+        .metric-card.m3 { border-top-color: #4facfe; }
+        .metric-card.m4 { border-top-color: #43e97b; }
+        
+        .metric-value {
+            font-size: 42px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 15px 0;
+        }
+        
+        .metric-label {
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .race-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .race-title {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .race-info {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .race-info-box {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .race-info-label {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .race-info-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .podium {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .podium-position {
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+        }
+        
+        .podium-position.first {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            border: 3px solid #ffd700;
+            transform: scale(1.05);
+        }
+        
+        .podium-position.second {
+            background: linear-gradient(135deg, #c0c0c0 0%, #808080 100%);
+            border: 3px solid #c0c0c0;
+        }
+        
+        .podium-position.third {
+            background: linear-gradient(135deg, #cd7f32 0%, #8b4513 100%);
+            border: 3px solid #cd7f32;
+        }
+        
+        .podium-medal {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .podium-car {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .podium-time {
+            font-size: 24px;
+            margin-top: 10px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            color: #667eea;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .table-container {
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        tr:hover {
+            background-color: #f8f9ff;
+        }
+        
+        .insights {
+            margin-bottom: 30px;
+        }
+        
+        .insight {
+            margin-bottom: 12px;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #999;
+        }
+        
+        .insight.critical {
+            background-color: #ffebee;
+            border-left-color: #f44336;
+        }
+        
+        .insight.high {
+            background-color: #fff3e0;
+            border-left-color: #ff9800;
+        }
+        
+        .insight.medium {
+            background-color: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+        
+        .insight.low {
+            background-color: #f3e5f5;
+            border-left-color: #9c27b0;
+        }
+        
+        .insight-text {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .podium { grid-template-columns: 1fr; }
+            .race-info { grid-template-columns: 1fr; }
+            .metrics { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏁 GR Cup Race Intelligence Dashboard</h1>
+            <p>Real-Time Analytics & Strategy Engine</p>
+        </div>
+        
+        <!-- Summary Metrics -->
+        <div class="metrics">
+
+            <div class="metric-card">
+                <div class="metric-label">Total Tracks</div>
+                <div class="metric-value">7</div>
+            </div>
+
+            <div class="metric-card m2">
+                <div class="metric-label">Races Analyzed</div>
+                <div class="metric-value">14</div>
+            </div>
+
+            <div class="metric-card m3">
+                <div class="metric-label">Total Cars</div>
+                <div class="metric-value">349</div>
+            </div>
+
+            <div class="metric-card m4">
+                <div class="metric-label">Strategic Insights</div>
+                <div class="metric-value">60</div>
+            </div>
+
+        </div>
+
+        <!-- Race 1 -->
+        <div class="race-section">
+            <div class="race-title">BARBER - Race 1</div>
+            
+            <div class="race-info">
+                <div class="race-info-box">
+                    <div class="race-info-label">Current Lap</div>
+                    <div class="race-info-value">28</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Total Drivers</div>
+                    <div class="race-info-value">20</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Insights</div>
+                    <div class="race-info-value">8</div>
+                </div>
+            </div>
+            
+            <h3 class="section-title">Podium - Top 3 Performers</h3>
+            <div class="podium">
+
+                <div class="podium-position first">
+                    <div class="podium-medal">🥇</div>
+                    <div class="podium-car">GR86-063-113</div>
+                    <div class="podium-time">48.202s</div>
+                </div>
+
+                <div class="podium-position second">
+                    <div class="podium-medal">🥈</div>
+                    <div class="podium-car">GR86-036-98</div>
+                    <div class="podium-time">63.605s</div>
+                </div>
+
+                <div class="podium-position third">
+                    <div class="podium-medal">🥉</div>
+                    <div class="podium-car">GR86-022-13</div>
+                    <div class="podium-time">97.006s</div>
+                </div>
+
+            </div>
+            
+            <h3 class="section-title">Full Race Standings</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Car ID</th>
+                            <th>Laps</th>
+                            <th>Best Lap</th>
+                            <th>Avg Lap</th>
+                            <th>Consistency</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td>GR86-063-113</td>
+                            <td>26</td>
+                            <td>48.202s</td>
+                            <td>101.945s</td>
+                            <td>83.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td>GR86-036-98</td>
+                            <td>28</td>
+                            <td>63.605s</td>
+                            <td>100.963s</td>
+                            <td>87.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td>GR86-022-13</td>
+                            <td>30</td>
+                            <td>97.006s</td>
+                            <td>100.295s</td>
+                            <td>92.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td>GR86-006-7</td>
+                            <td>39</td>
+                            <td>97.448s</td>
+                            <td>104.111s</td>
+                            <td>88.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td>GR86-026-72</td>
+                            <td>28</td>
+                            <td>97.767s</td>
+                            <td>102.294s</td>
+                            <td>89.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>6</strong></td>
+                            <td>GR86-010-16</td>
+                            <td>28</td>
+                            <td>97.770s</td>
+                            <td>100.556s</td>
+                            <td>91.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>7</strong></td>
+                            <td>GR86-016-55</td>
+                            <td>37</td>
+                            <td>97.971s</td>
+                            <td>100.289s</td>
+                            <td>93.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>8</strong></td>
+                            <td>GR86-033-46</td>
+                            <td>27</td>
+                            <td>98.187s</td>
+                            <td>102.409s</td>
+                            <td>91.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>9</strong></td>
+                            <td>GR86-025-47</td>
+                            <td>30</td>
+                            <td>98.215s</td>
+                            <td>100.819s</td>
+                            <td>92.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>10</strong></td>
+                            <td>GR86-002-000</td>
+                            <td>26</td>
+                            <td>98.262s</td>
+                            <td>101.141s</td>
+                            <td>91.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>11</strong></td>
+                            <td>GR86-015-31</td>
+                            <td>26</td>
+                            <td>98.382s</td>
+                            <td>102.009s</td>
+                            <td>92.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>12</strong></td>
+                            <td>GR86-047-21</td>
+                            <td>28</td>
+                            <td>98.782s</td>
+                            <td>101.791s</td>
+                            <td>92.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>13</strong></td>
+                            <td>GR86-049-88</td>
+                            <td>12</td>
+                            <td>98.863s</td>
+                            <td>105.451s</td>
+                            <td>89.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>14</strong></td>
+                            <td>GR86-060-2</td>
+                            <td>26</td>
+                            <td>98.910s</td>
+                            <td>101.984s</td>
+                            <td>92.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>15</strong></td>
+                            <td>GR86-040-3</td>
+                            <td>31</td>
+                            <td>99.053s</td>
+                            <td>101.929s</td>
+                            <td>93.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>16</strong></td>
+                            <td>GR86-065-5</td>
+                            <td>29</td>
+                            <td>99.070s</td>
+                            <td>102.539s</td>
+                            <td>92.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>17</strong></td>
+                            <td>GR86-038-93</td>
+                            <td>25</td>
+                            <td>99.271s</td>
+                            <td>102.613s</td>
+                            <td>92.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>18</strong></td>
+                            <td>GR86-013-80</td>
+                            <td>25</td>
+                            <td>99.809s</td>
+                            <td>103.711s</td>
+                            <td>92.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>19</strong></td>
+                            <td>GR86-004-78</td>
+                            <td>25</td>
+                            <td>100.217s</td>
+                            <td>103.412s</td>
+                            <td>92.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>20</strong></td>
+                            <td>GR86-030-18</td>
+                            <td>26</td>
+                            <td>101.367s</td>
+                            <td>105.293s</td>
+                            <td>93.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 class="section-title">Strategic Insights & Alerts</h3>
+            <div class="insights">
+
+                <div class="insight medium">
+                    <strong>[MEDIUM]</strong>
+                    <span class="insight-text">GR86-002-000: Pit window opening in 1 laps</span>
+                </div>
+
+                <div class="insight medium">
+                    <strong>[MEDIUM]</strong>
+                    <span class="insight-text">GR86-004-78: Pit window opening in 1 laps</span>
+                </div>
+
+                <div class="insight medium">
+                    <strong>[MEDIUM]</strong>
+                    <span class="insight-text">GR86-006-7: Pit window opening in 1 laps</span>
+                </div>
+
+                <div class="insight medium">
+                    <strong>[MEDIUM]</strong>
+                    <span class="insight-text">GR86-010-16: Pit window opening in 1 laps</span>
+                </div>
+
+                <div class="insight medium">
+                    <strong>[MEDIUM]</strong>
+                    <span class="insight-text">GR86-013-80: Pit window opening in 1 laps</span>
+                </div>
+
+                <div class="insight medium">
+                    <strong>[MEDIUM]</strong>
+                    <span class="insight-text">GR86-002-000: Lap times degrading - possible tire wear</span>
+                </div>
+
+                <div class="insight low">
+                    <strong>[LOW]</strong>
+                    <span class="insight-text">GR86-004-78: Improving pace - excellent tire management</span>
+                </div>
+
+                <div class="insight low">
+                    <strong>[LOW]</strong>
+                    <span class="insight-text">GR86-006-7: Improving pace - excellent tire management</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Race 2 -->
+        <div class="race-section">
+            <div class="race-title">BARBER - Race 2</div>
+            
+            <div class="race-info">
+                <div class="race-info-box">
+                    <div class="race-info-label">Current Lap</div>
+                    <div class="race-info-value">28</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Total Drivers</div>
+                    <div class="race-info-value">20</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Insights</div>
+                    <div class="race-info-value">7</div>
+                </div>
+            </div>
+            
+            <h3 class="section-title">Podium - Top 3 Performers</h3>
+            <div class="podium">
+
+                <div class="podium-position first">
+                    <div class="podium-medal">🥇</div>
+                    <div class="podium-car">GR86-010-16</div>
+                    <div class="podium-time">70.870s</div>
+                </div>
+
+                <div class="podium-position second">
+                    <div class="podium-medal">🥈</div>
+                    <div class="podium-car">GR86-022-13</div>
+                    <div class="podium-time">96.691s</div>
+                </div>
+
+                <div class="podium-position third">
+                    <div class="podium-medal">🥉</div>
+                    <div class="podium-car">GR86-002-000</div>
+                    <div class="podium-time">97.666s</div>
+                </div>
+
+            </div>
+            
+            <h3 class="section-title">Full Race Standings</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Car ID</th>
+                            <th>Laps</th>
+                            <th>Best Lap</th>
+                            <th>Avg Lap</th>
+                            <th>Consistency</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td>GR86-010-16</td>
+                            <td>33</td>
+                            <td>70.870s</td>
+                            <td>96.889s</td>
+                            <td>91.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td>GR86-022-13</td>
+                            <td>30</td>
+                            <td>96.691s</td>
+                            <td>97.745s</td>
+                            <td>99.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td>GR86-002-000</td>
+                            <td>26</td>
+                            <td>97.666s</td>
+                            <td>98.294s</td>
+                            <td>99.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td>GR86-016-55</td>
+                            <td>33</td>
+                            <td>97.708s</td>
+                            <td>98.330s</td>
+                            <td>99.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td>GR86-033-46</td>
+                            <td>26</td>
+                            <td>97.799s</td>
+                            <td>98.492s</td>
+                            <td>99.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>6</strong></td>
+                            <td>GR86-026-72</td>
+                            <td>30</td>
+                            <td>97.876s</td>
+                            <td>98.485s</td>
+                            <td>99.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>7</strong></td>
+                            <td>GR86-036-98</td>
+                            <td>30</td>
+                            <td>97.880s</td>
+                            <td>100.016s</td>
+                            <td>91.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>8</strong></td>
+                            <td>GR86-025-47</td>
+                            <td>30</td>
+                            <td>97.899s</td>
+                            <td>98.433s</td>
+                            <td>99.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>9</strong></td>
+                            <td>GR86-015-31</td>
+                            <td>27</td>
+                            <td>97.950s</td>
+                            <td>102.589s</td>
+                            <td>83.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>10</strong></td>
+                            <td>GR86-049-88</td>
+                            <td>28</td>
+                            <td>98.005s</td>
+                            <td>98.798s</td>
+                            <td>99.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>11</strong></td>
+                            <td>GR86-047-21</td>
+                            <td>30</td>
+                            <td>98.076s</td>
+                            <td>98.604s</td>
+                            <td>99.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>12</strong></td>
+                            <td>GR86-060-2</td>
+                            <td>30</td>
+                            <td>98.117s</td>
+                            <td>98.849s</td>
+                            <td>99.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>13</strong></td>
+                            <td>GR86-065-5</td>
+                            <td>32</td>
+                            <td>98.169s</td>
+                            <td>98.793s</td>
+                            <td>99.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>14</strong></td>
+                            <td>GR86-006-7</td>
+                            <td>37</td>
+                            <td>98.172s</td>
+                            <td>98.796s</td>
+                            <td>99.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>15</strong></td>
+                            <td>GR86-063-113</td>
+                            <td>27</td>
+                            <td>98.400s</td>
+                            <td>103.265s</td>
+                            <td>80.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>16</strong></td>
+                            <td>GR86-004-78</td>
+                            <td>27</td>
+                            <td>98.814s</td>
+                            <td>104.790s</td>
+                            <td>77.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>17</strong></td>
+                            <td>GR86-038-93</td>
+                            <td>21</td>
+                            <td>98.862s</td>
+                            <td>108.352s</td>
+                            <td>69.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>18</strong></td>
+                            <td>GR86-040-3</td>
+                            <td>28</td>
+                            <td>98.914s</td>
+                            <td>99.567s</td>
+                            <td>99.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>19</strong></td>
+                            <td>GR86-013-80</td>
+                            <td>25</td>
+                            <td>98.969s</td>
+                            <td>104.132s</td>
+                            <td>82.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>20</strong></td>
+                            <td>GR86-030-18</td>
+                            <td>26</td>
+                            <td>100.211s</td>
+                            <td>101.654s</td>
+                            <td>98.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 class="section-title">Strategic Insights & Alerts</h3>
+            <div class="insights">
+
+                <div class="insight medium">
+                    <strong>[MEDIUM]</strong>
+                    <span class="insight-text">GR86-002-000: Pit window opening in 1 laps</span>
+                </div>
+
+                <div class="insight medium">
+                    <strong>[MEDIUM]</strong>
+                    <span class="insight-text">GR86-004-78: Pit window opening in 1 laps</span>
+                </div>
+
+                <div class="insight medium">
+                    <strong>[MEDIUM]</strong>
+                    <span class="insight-text">GR86-006-7: Pit window opening in 1 laps</span>
+                </div>
+
+                <div class="insight medium">
+                    <strong>[MEDIUM]</strong>
+                    <span class="insight-text">GR86-010-16: Pit window opening in 1 laps</span>
+                </div>
+
+                <div class="insight medium">
+                    <strong>[MEDIUM]</strong>
+                    <span class="insight-text">GR86-013-80: Pit window opening in 1 laps</span>
+                </div>
+
+                <div class="insight low">
+                    <strong>[LOW]</strong>
+                    <span class="insight-text">GR86-002-000: Improving pace - excellent tire management</span>
+                </div>
+
+                <div class="insight low">
+                    <strong>[LOW]</strong>
+                    <span class="insight-text">GR86-004-78: Improving pace - excellent tire management</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Race 3 -->
+        <div class="race-section">
+            <div class="race-title">COTA - Race 1</div>
+            
+            <div class="race-info">
+                <div class="race-info-box">
+                    <div class="race-info-label">Current Lap</div>
+                    <div class="race-info-value">32768</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Total Drivers</div>
+                    <div class="race-info-value">30</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Insights</div>
+                    <div class="race-info-value">5</div>
+                </div>
+            </div>
+            
+            <h3 class="section-title">Podium - Top 3 Performers</h3>
+            <div class="podium">
+
+                <div class="podium-position first">
+                    <div class="podium-medal">🥇</div>
+                    <div class="podium-car">GR86-051-71</div>
+                    <div class="podium-time">34.295s</div>
+                </div>
+
+                <div class="podium-position second">
+                    <div class="podium-medal">🥈</div>
+                    <div class="podium-car">GR86-012-8</div>
+                    <div class="podium-time">67.445s</div>
+                </div>
+
+                <div class="podium-position third">
+                    <div class="podium-medal">🥉</div>
+                    <div class="podium-car">GR86-061-51</div>
+                    <div class="podium-time">74.038s</div>
+                </div>
+
+            </div>
+            
+            <h3 class="section-title">Full Race Standings</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Car ID</th>
+                            <th>Laps</th>
+                            <th>Best Lap</th>
+                            <th>Avg Lap</th>
+                            <th>Consistency</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td>GR86-051-71</td>
+                            <td>18</td>
+                            <td>34.295s</td>
+                            <td>154.850s</td>
+                            <td>65.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td>GR86-012-8</td>
+                            <td>25</td>
+                            <td>67.445s</td>
+                            <td>170.082s</td>
+                            <td>75.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td>GR86-061-51</td>
+                            <td>14</td>
+                            <td>74.038s</td>
+                            <td>158.758s</td>
+                            <td>79.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td>GR86-036-98</td>
+                            <td>22</td>
+                            <td>91.840s</td>
+                            <td>164.742s</td>
+                            <td>78.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td>GR86-006-7</td>
+                            <td>25</td>
+                            <td>148.385s</td>
+                            <td>171.375s</td>
+                            <td>78.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>6</strong></td>
+                            <td>GR86-033-46</td>
+                            <td>24</td>
+                            <td>148.598s</td>
+                            <td>165.324s</td>
+                            <td>80.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>7</strong></td>
+                            <td>GR86-016-55</td>
+                            <td>18</td>
+                            <td>148.670s</td>
+                            <td>168.882s</td>
+                            <td>76.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>8</strong></td>
+                            <td>GR86-026-72</td>
+                            <td>19</td>
+                            <td>148.683s</td>
+                            <td>169.332s</td>
+                            <td>79.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>9</strong></td>
+                            <td>GR86-010-16</td>
+                            <td>20</td>
+                            <td>148.708s</td>
+                            <td>164.990s</td>
+                            <td>80.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>10</strong></td>
+                            <td>GR86-022-13</td>
+                            <td>22</td>
+                            <td>148.710s</td>
+                            <td>164.128s</td>
+                            <td>80.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>11</strong></td>
+                            <td>GR86-047-21</td>
+                            <td>19</td>
+                            <td>148.969s</td>
+                            <td>170.009s</td>
+                            <td>79.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>12</strong></td>
+                            <td>GR86-004-78</td>
+                            <td>19</td>
+                            <td>149.240s</td>
+                            <td>169.720s</td>
+                            <td>79.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>13</strong></td>
+                            <td>GR86-024-41</td>
+                            <td>23</td>
+                            <td>149.240s</td>
+                            <td>166.474s</td>
+                            <td>80.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>14</strong></td>
+                            <td>GR86-028-89</td>
+                            <td>19</td>
+                            <td>149.610s</td>
+                            <td>171.736s</td>
+                            <td>78.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>15</strong></td>
+                            <td>GR86-049-88</td>
+                            <td>22</td>
+                            <td>149.679s</td>
+                            <td>174.042s</td>
+                            <td>80.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>16</strong></td>
+                            <td>GR86-025-47</td>
+                            <td>21</td>
+                            <td>149.691s</td>
+                            <td>170.785s</td>
+                            <td>80.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>17</strong></td>
+                            <td>GR86-063-113</td>
+                            <td>18</td>
+                            <td>149.840s</td>
+                            <td>167.265s</td>
+                            <td>83.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>18</strong></td>
+                            <td>GR86-015-31</td>
+                            <td>15</td>
+                            <td>150.211s</td>
+                            <td>177.521s</td>
+                            <td>79.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>19</strong></td>
+                            <td>GR86-029-14</td>
+                            <td>19</td>
+                            <td>150.279s</td>
+                            <td>170.064s</td>
+                            <td>80.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>20</strong></td>
+                            <td>GR86-065-5</td>
+                            <td>26</td>
+                            <td>150.879s</td>
+                            <td>169.811s</td>
+                            <td>81.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>21</strong></td>
+                            <td>GR86-038-93</td>
+                            <td>19</td>
+                            <td>150.947s</td>
+                            <td>170.662s</td>
+                            <td>80.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>22</strong></td>
+                            <td>GR86-037-03</td>
+                            <td>19</td>
+                            <td>151.208s</td>
+                            <td>170.287s</td>
+                            <td>80.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>23</strong></td>
+                            <td>GR86-032-15</td>
+                            <td>5</td>
+                            <td>151.718s</td>
+                            <td>165.759s</td>
+                            <td>85.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>24</strong></td>
+                            <td>GR86-040-3</td>
+                            <td>19</td>
+                            <td>151.929s</td>
+                            <td>171.763s</td>
+                            <td>79.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>25</strong></td>
+                            <td>GR86-035-11</td>
+                            <td>11</td>
+                            <td>151.999s</td>
+                            <td>164.764s</td>
+                            <td>84.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>26</strong></td>
+                            <td>GR86-041-73</td>
+                            <td>19</td>
+                            <td>152.069s</td>
+                            <td>172.295s</td>
+                            <td>80.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>27</strong></td>
+                            <td>GR86-013-80</td>
+                            <td>19</td>
+                            <td>152.158s</td>
+                            <td>170.610s</td>
+                            <td>82.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>28</strong></td>
+                            <td>GR86-021-86</td>
+                            <td>19</td>
+                            <td>153.284s</td>
+                            <td>170.036s</td>
+                            <td>82.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>29</strong></td>
+                            <td>GR86-030-18</td>
+                            <td>21</td>
+                            <td>153.399s</td>
+                            <td>170.719s</td>
+                            <td>81.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>30</strong></td>
+                            <td>GR86-057-57</td>
+                            <td>19</td>
+                            <td>153.617s</td>
+                            <td>171.610s</td>
+                            <td>80.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 class="section-title">Strategic Insights & Alerts</h3>
+            <div class="insights">
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-004-78: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-006-7: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-010-16: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-012-8: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-013-80: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Race 4 -->
+        <div class="race-section">
+            <div class="race-title">COTA - Race 2</div>
+            
+            <div class="race-info">
+                <div class="race-info-box">
+                    <div class="race-info-label">Current Lap</div>
+                    <div class="race-info-value">32768</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Total Drivers</div>
+                    <div class="race-info-value">31</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Insights</div>
+                    <div class="race-info-value">5</div>
+                </div>
+            </div>
+            
+            <h3 class="section-title">Podium - Top 3 Performers</h3>
+            <div class="podium">
+
+                <div class="podium-position first">
+                    <div class="podium-medal">🥇</div>
+                    <div class="podium-car">GR86-025-47</div>
+                    <div class="podium-time">33.079s</div>
+                </div>
+
+                <div class="podium-position second">
+                    <div class="podium-medal">🥈</div>
+                    <div class="podium-car">GR86-002-2</div>
+                    <div class="podium-time">33.604s</div>
+                </div>
+
+                <div class="podium-position third">
+                    <div class="podium-medal">🥉</div>
+                    <div class="podium-car">GR86-026-72</div>
+                    <div class="podium-time">60.248s</div>
+                </div>
+
+            </div>
+            
+            <h3 class="section-title">Full Race Standings</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Car ID</th>
+                            <th>Laps</th>
+                            <th>Best Lap</th>
+                            <th>Avg Lap</th>
+                            <th>Consistency</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td>GR86-025-47</td>
+                            <td>19</td>
+                            <td>33.079s</td>
+                            <td>161.577s</td>
+                            <td>74.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td>GR86-002-2</td>
+                            <td>21</td>
+                            <td>33.604s</td>
+                            <td>171.272s</td>
+                            <td>74.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td>GR86-026-72</td>
+                            <td>20</td>
+                            <td>60.248s</td>
+                            <td>163.900s</td>
+                            <td>77.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td>GR86-015-31</td>
+                            <td>21</td>
+                            <td>94.398s</td>
+                            <td>172.729s</td>
+                            <td>79.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td>GR86-006-7</td>
+                            <td>24</td>
+                            <td>148.080s</td>
+                            <td>165.582s</td>
+                            <td>82.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>6</strong></td>
+                            <td>GR86-022-13</td>
+                            <td>19</td>
+                            <td>148.087s</td>
+                            <td>170.230s</td>
+                            <td>81.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>7</strong></td>
+                            <td>GR86-033-46</td>
+                            <td>21</td>
+                            <td>148.398s</td>
+                            <td>172.739s</td>
+                            <td>81.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>8</strong></td>
+                            <td>GR86-047-21</td>
+                            <td>20</td>
+                            <td>148.439s</td>
+                            <td>168.460s</td>
+                            <td>83.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>9</strong></td>
+                            <td>GR86-010-16</td>
+                            <td>20</td>
+                            <td>148.469s</td>
+                            <td>172.808s</td>
+                            <td>81.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>10</strong></td>
+                            <td>GR86-016-55</td>
+                            <td>19</td>
+                            <td>148.678s</td>
+                            <td>171.001s</td>
+                            <td>82.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>11</strong></td>
+                            <td>GR86-024-41</td>
+                            <td>21</td>
+                            <td>148.988s</td>
+                            <td>172.891s</td>
+                            <td>81.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>12</strong></td>
+                            <td>GR86-036-98</td>
+                            <td>21</td>
+                            <td>149.129s</td>
+                            <td>175.709s</td>
+                            <td>81.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>13</strong></td>
+                            <td>GR86-051-71</td>
+                            <td>19</td>
+                            <td>149.137s</td>
+                            <td>170.070s</td>
+                            <td>83.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>14</strong></td>
+                            <td>GR86-004-78</td>
+                            <td>19</td>
+                            <td>149.189s</td>
+                            <td>171.399s</td>
+                            <td>82.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>15</strong></td>
+                            <td>GR86-032-15</td>
+                            <td>19</td>
+                            <td>149.280s</td>
+                            <td>171.344s</td>
+                            <td>82.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>16</strong></td>
+                            <td>GR86-028-89</td>
+                            <td>21</td>
+                            <td>149.399s</td>
+                            <td>170.021s</td>
+                            <td>82.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>17</strong></td>
+                            <td>GR86-049-88</td>
+                            <td>19</td>
+                            <td>149.440s</td>
+                            <td>170.892s</td>
+                            <td>82.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>18</strong></td>
+                            <td>GR86-029-14</td>
+                            <td>17</td>
+                            <td>149.902s</td>
+                            <td>168.368s</td>
+                            <td>84.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>19</strong></td>
+                            <td>GR86-065-5</td>
+                            <td>21</td>
+                            <td>149.913s</td>
+                            <td>172.304s</td>
+                            <td>82.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>20</strong></td>
+                            <td>GR86-038-93</td>
+                            <td>17</td>
+                            <td>149.968s</td>
+                            <td>168.168s</td>
+                            <td>84.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>21</strong></td>
+                            <td>GR86-037-03</td>
+                            <td>17</td>
+                            <td>150.565s</td>
+                            <td>168.325s</td>
+                            <td>85.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>22</strong></td>
+                            <td>GR86-040-3</td>
+                            <td>19</td>
+                            <td>150.600s</td>
+                            <td>171.505s</td>
+                            <td>82.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>23</strong></td>
+                            <td>GR86-063-113</td>
+                            <td>19</td>
+                            <td>150.600s</td>
+                            <td>171.092s</td>
+                            <td>82.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>24</strong></td>
+                            <td>GR86-061-51</td>
+                            <td>19</td>
+                            <td>150.917s</td>
+                            <td>171.938s</td>
+                            <td>83.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>25</strong></td>
+                            <td>GR86-041-73</td>
+                            <td>19</td>
+                            <td>151.240s</td>
+                            <td>171.774s</td>
+                            <td>83.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>26</strong></td>
+                            <td>GR86-035-11</td>
+                            <td>23</td>
+                            <td>151.359s</td>
+                            <td>173.852s</td>
+                            <td>82.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>27</strong></td>
+                            <td>GR86-013-80</td>
+                            <td>12</td>
+                            <td>151.478s</td>
+                            <td>163.591s</td>
+                            <td>87.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>28</strong></td>
+                            <td>GR86-021-86</td>
+                            <td>19</td>
+                            <td>151.919s</td>
+                            <td>171.326s</td>
+                            <td>84.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>29</strong></td>
+                            <td>GR86-030-18</td>
+                            <td>13</td>
+                            <td>152.119s</td>
+                            <td>169.872s</td>
+                            <td>84.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>30</strong></td>
+                            <td>GR86-057-57</td>
+                            <td>19</td>
+                            <td>152.714s</td>
+                            <td>172.069s</td>
+                            <td>83.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>31</strong></td>
+                            <td>GR86-012-8</td>
+                            <td>20</td>
+                            <td>153.319s</td>
+                            <td>173.370s</td>
+                            <td>84.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 class="section-title">Strategic Insights & Alerts</h3>
+            <div class="insights">
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-002-2: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-004-78: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-006-7: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-010-16: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-012-8: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Race 5 -->
+        <div class="race-section">
+            <div class="race-title">INDIANAPOLIS - Race 1</div>
+            
+            <div class="race-info">
+                <div class="race-info-box">
+                    <div class="race-info-label">Current Lap</div>
+                    <div class="race-info-value">32768</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Total Drivers</div>
+                    <div class="race-info-value">25</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Insights</div>
+                    <div class="race-info-value">5</div>
+                </div>
+            </div>
+            
+            <h3 class="section-title">Podium - Top 3 Performers</h3>
+            <div class="podium">
+
+                <div class="podium-position first">
+                    <div class="podium-medal">🥇</div>
+                    <div class="podium-car">GR86-035-11</div>
+                    <div class="podium-time">40.238s</div>
+                </div>
+
+                <div class="podium-position second">
+                    <div class="podium-medal">🥈</div>
+                    <div class="podium-car">GR86-015-31</div>
+                    <div class="podium-time">87.403s</div>
+                </div>
+
+                <div class="podium-position third">
+                    <div class="podium-medal">🥉</div>
+                    <div class="podium-car">GR86-063-113</div>
+                    <div class="podium-time">96.863s</div>
+                </div>
+
+            </div>
+            
+            <h3 class="section-title">Full Race Standings</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Car ID</th>
+                            <th>Laps</th>
+                            <th>Best Lap</th>
+                            <th>Avg Lap</th>
+                            <th>Consistency</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td>GR86-035-11</td>
+                            <td>36</td>
+                            <td>40.238s</td>
+                            <td>114.011s</td>
+                            <td>75.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td>GR86-015-31</td>
+                            <td>4</td>
+                            <td>87.403s</td>
+                            <td>111.157s</td>
+                            <td>78.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td>GR86-063-113</td>
+                            <td>30</td>
+                            <td>96.863s</td>
+                            <td>110.392s</td>
+                            <td>83.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td>GR86-016-55</td>
+                            <td>33</td>
+                            <td>98.078s</td>
+                            <td>112.334s</td>
+                            <td>79.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td>GR86-049-88</td>
+                            <td>33</td>
+                            <td>98.512s</td>
+                            <td>115.437s</td>
+                            <td>71.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>6</strong></td>
+                            <td>GR86-026-72</td>
+                            <td>23</td>
+                            <td>99.861s</td>
+                            <td>112.899s</td>
+                            <td>82.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>7</strong></td>
+                            <td>GR86-002-000</td>
+                            <td>33</td>
+                            <td>99.932s</td>
+                            <td>112.341s</td>
+                            <td>81.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>8</strong></td>
+                            <td>GR86-036-98</td>
+                            <td>28</td>
+                            <td>100.098s</td>
+                            <td>118.649s</td>
+                            <td>73.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>9</strong></td>
+                            <td>GR86-022-13</td>
+                            <td>45</td>
+                            <td>100.101s</td>
+                            <td>112.971s</td>
+                            <td>81.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>10</strong></td>
+                            <td>GR86-010-16</td>
+                            <td>31</td>
+                            <td>100.110s</td>
+                            <td>112.923s</td>
+                            <td>79.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>11</strong></td>
+                            <td>GR86-033-46</td>
+                            <td>33</td>
+                            <td>100.247s</td>
+                            <td>112.163s</td>
+                            <td>82.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>12</strong></td>
+                            <td>GR86-006-7</td>
+                            <td>15</td>
+                            <td>100.277s</td>
+                            <td>108.167s</td>
+                            <td>81.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>13</strong></td>
+                            <td>GR86-025-47</td>
+                            <td>33</td>
+                            <td>100.343s</td>
+                            <td>111.126s</td>
+                            <td>82.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>14</strong></td>
+                            <td>GR86-047-21</td>
+                            <td>30</td>
+                            <td>100.664s</td>
+                            <td>110.322s</td>
+                            <td>84.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>15</strong></td>
+                            <td>GR86-065-5</td>
+                            <td>32</td>
+                            <td>100.951s</td>
+                            <td>112.232s</td>
+                            <td>83.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>16</strong></td>
+                            <td>GR86-028-89</td>
+                            <td>34</td>
+                            <td>101.159s</td>
+                            <td>114.687s</td>
+                            <td>80.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>17</strong></td>
+                            <td>GR86-040-3</td>
+                            <td>32</td>
+                            <td>101.278s</td>
+                            <td>109.838s</td>
+                            <td>84.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>18</strong></td>
+                            <td>GR86-060-2</td>
+                            <td>31</td>
+                            <td>101.387s</td>
+                            <td>116.295s</td>
+                            <td>79.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>19</strong></td>
+                            <td>GR86-030-18</td>
+                            <td>28</td>
+                            <td>101.876s</td>
+                            <td>111.432s</td>
+                            <td>85.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>20</strong></td>
+                            <td>GR86-013-80</td>
+                            <td>17</td>
+                            <td>101.907s</td>
+                            <td>113.586s</td>
+                            <td>83.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>21</strong></td>
+                            <td>GR86-038-93</td>
+                            <td>29</td>
+                            <td>102.045s</td>
+                            <td>114.465s</td>
+                            <td>78.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>22</strong></td>
+                            <td>GR86-037-03</td>
+                            <td>31</td>
+                            <td>102.374s</td>
+                            <td>112.168s</td>
+                            <td>84.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>23</strong></td>
+                            <td>GR86-057-57</td>
+                            <td>31</td>
+                            <td>103.474s</td>
+                            <td>115.090s</td>
+                            <td>85.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>24</strong></td>
+                            <td>GR86-012-8</td>
+                            <td>30</td>
+                            <td>103.645s</td>
+                            <td>111.199s</td>
+                            <td>87.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>25</strong></td>
+                            <td>GR86-021-86</td>
+                            <td>3</td>
+                            <td>110.353s</td>
+                            <td>132.991s</td>
+                            <td>84.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 class="section-title">Strategic Insights & Alerts</h3>
+            <div class="insights">
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-025-47: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-033-46: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-010-16: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-012-8: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-063-113: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Race 6 -->
+        <div class="race-section">
+            <div class="race-title">INDIANAPOLIS - Race 2</div>
+            
+            <div class="race-info">
+                <div class="race-info-box">
+                    <div class="race-info-label">Current Lap</div>
+                    <div class="race-info-value">32768</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Total Drivers</div>
+                    <div class="race-info-value">25</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Insights</div>
+                    <div class="race-info-value">5</div>
+                </div>
+            </div>
+            
+            <h3 class="section-title">Podium - Top 3 Performers</h3>
+            <div class="podium">
+
+                <div class="podium-position first">
+                    <div class="podium-medal">🥇</div>
+                    <div class="podium-car">GR86-015-31</div>
+                    <div class="podium-time">87.403s</div>
+                </div>
+
+                <div class="podium-position second">
+                    <div class="podium-medal">🥈</div>
+                    <div class="podium-car">GR86-022-13</div>
+                    <div class="podium-time">96.129s</div>
+                </div>
+
+                <div class="podium-position third">
+                    <div class="podium-medal">🥉</div>
+                    <div class="podium-car">GR86-033-46</div>
+                    <div class="podium-time">99.917s</div>
+                </div>
+
+            </div>
+            
+            <h3 class="section-title">Full Race Standings</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Car ID</th>
+                            <th>Laps</th>
+                            <th>Best Lap</th>
+                            <th>Avg Lap</th>
+                            <th>Consistency</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td>GR86-015-31</td>
+                            <td>27</td>
+                            <td>87.403s</td>
+                            <td>120.315s</td>
+                            <td>79.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td>GR86-022-13</td>
+                            <td>28</td>
+                            <td>96.129s</td>
+                            <td>125.361s</td>
+                            <td>72.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td>GR86-033-46</td>
+                            <td>15</td>
+                            <td>99.917s</td>
+                            <td>114.059s</td>
+                            <td>81.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td>GR86-010-16</td>
+                            <td>27</td>
+                            <td>100.309s</td>
+                            <td>121.054s</td>
+                            <td>83.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td>GR86-016-55</td>
+                            <td>28</td>
+                            <td>100.332s</td>
+                            <td>124.384s</td>
+                            <td>75.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>6</strong></td>
+                            <td>GR86-036-98</td>
+                            <td>25</td>
+                            <td>100.403s</td>
+                            <td>122.029s</td>
+                            <td>83.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>7</strong></td>
+                            <td>GR86-026-72</td>
+                            <td>18</td>
+                            <td>100.716s</td>
+                            <td>118.413s</td>
+                            <td>82.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>8</strong></td>
+                            <td>GR86-024-41</td>
+                            <td>28</td>
+                            <td>100.799s</td>
+                            <td>122.791s</td>
+                            <td>82.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>9</strong></td>
+                            <td>GR86-025-47</td>
+                            <td>28</td>
+                            <td>100.800s</td>
+                            <td>123.216s</td>
+                            <td>83.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>10</strong></td>
+                            <td>GR86-002-000</td>
+                            <td>27</td>
+                            <td>100.812s</td>
+                            <td>123.261s</td>
+                            <td>83.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>11</strong></td>
+                            <td>GR86-049-88</td>
+                            <td>27</td>
+                            <td>101.217s</td>
+                            <td>123.733s</td>
+                            <td>83.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>12</strong></td>
+                            <td>GR86-060-2</td>
+                            <td>29</td>
+                            <td>101.764s</td>
+                            <td>127.320s</td>
+                            <td>81.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>13</strong></td>
+                            <td>GR86-047-21</td>
+                            <td>25</td>
+                            <td>102.129s</td>
+                            <td>121.968s</td>
+                            <td>83.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>14</strong></td>
+                            <td>GR86-065-5</td>
+                            <td>26</td>
+                            <td>102.146s</td>
+                            <td>138.010s</td>
+                            <td>57.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>15</strong></td>
+                            <td>GR86-013-80</td>
+                            <td>29</td>
+                            <td>102.283s</td>
+                            <td>121.453s</td>
+                            <td>83.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>16</strong></td>
+                            <td>GR86-040-3</td>
+                            <td>27</td>
+                            <td>102.326s</td>
+                            <td>123.621s</td>
+                            <td>84.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>17</strong></td>
+                            <td>GR86-038-93</td>
+                            <td>25</td>
+                            <td>102.528s</td>
+                            <td>121.490s</td>
+                            <td>84.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>18</strong></td>
+                            <td>GR86-028-89</td>
+                            <td>25</td>
+                            <td>102.638s</td>
+                            <td>121.716s</td>
+                            <td>84.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>19</strong></td>
+                            <td>GR86-035-11</td>
+                            <td>25</td>
+                            <td>102.966s</td>
+                            <td>121.602s</td>
+                            <td>85.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>20</strong></td>
+                            <td>GR86-037-03</td>
+                            <td>25</td>
+                            <td>103.473s</td>
+                            <td>121.558s</td>
+                            <td>85.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>21</strong></td>
+                            <td>GR86-030-18</td>
+                            <td>28</td>
+                            <td>103.817s</td>
+                            <td>120.771s</td>
+                            <td>86.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>22</strong></td>
+                            <td>GR86-012-8</td>
+                            <td>27</td>
+                            <td>104.174s</td>
+                            <td>121.562s</td>
+                            <td>86.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>23</strong></td>
+                            <td>GR86-057-57</td>
+                            <td>23</td>
+                            <td>104.401s</td>
+                            <td>119.682s</td>
+                            <td>85.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>24</strong></td>
+                            <td>GR86-021-86</td>
+                            <td>29</td>
+                            <td>106.010s</td>
+                            <td>121.439s</td>
+                            <td>85.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>25</strong></td>
+                            <td>GR86-063-113</td>
+                            <td>6</td>
+                            <td>110.187s</td>
+                            <td>146.003s</td>
+                            <td>80.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 class="section-title">Strategic Insights & Alerts</h3>
+            <div class="insights">
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-060-2: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-012-8: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-030-18: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-021-86: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-033-46: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Race 7 -->
+        <div class="race-section">
+            <div class="race-title">ROAD AMERICA - Race 1</div>
+            
+            <div class="race-info">
+                <div class="race-info-box">
+                    <div class="race-info-label">Current Lap</div>
+                    <div class="race-info-value">7</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Total Drivers</div>
+                    <div class="race-info-value">27</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Insights</div>
+                    <div class="race-info-value">3</div>
+                </div>
+            </div>
+            
+            <h3 class="section-title">Podium - Top 3 Performers</h3>
+            <div class="podium">
+
+                <div class="podium-position first">
+                    <div class="podium-medal">🥇</div>
+                    <div class="podium-car">GR86-010-16</div>
+                    <div class="podium-time">167.577s</div>
+                </div>
+
+                <div class="podium-position second">
+                    <div class="podium-medal">🥈</div>
+                    <div class="podium-car">GR86-036-98</div>
+                    <div class="podium-time">167.794s</div>
+                </div>
+
+                <div class="podium-position third">
+                    <div class="podium-medal">🥉</div>
+                    <div class="podium-car">GR86-002-2</div>
+                    <div class="podium-time">168.496s</div>
+                </div>
+
+            </div>
+            
+            <h3 class="section-title">Full Race Standings</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Car ID</th>
+                            <th>Laps</th>
+                            <th>Best Lap</th>
+                            <th>Avg Lap</th>
+                            <th>Consistency</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td>GR86-010-16</td>
+                            <td>8</td>
+                            <td>167.577s</td>
+                            <td>189.157s</td>
+                            <td>86.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td>GR86-036-98</td>
+                            <td>6</td>
+                            <td>167.794s</td>
+                            <td>187.167s</td>
+                            <td>85.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td>GR86-002-2</td>
+                            <td>6</td>
+                            <td>168.496s</td>
+                            <td>186.736s</td>
+                            <td>85.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td>GR86-047-21</td>
+                            <td>6</td>
+                            <td>168.600s</td>
+                            <td>186.226s</td>
+                            <td>85.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td>GR86-015-31</td>
+                            <td>8</td>
+                            <td>168.799s</td>
+                            <td>182.995s</td>
+                            <td>87.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>6</strong></td>
+                            <td>GR86-016-55</td>
+                            <td>6</td>
+                            <td>168.818s</td>
+                            <td>186.415s</td>
+                            <td>85.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>7</strong></td>
+                            <td>GR86-006-7</td>
+                            <td>6</td>
+                            <td>168.890s</td>
+                            <td>186.405s</td>
+                            <td>85.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>8</strong></td>
+                            <td>GR86-022-13</td>
+                            <td>6</td>
+                            <td>168.984s</td>
+                            <td>186.541s</td>
+                            <td>85.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>9</strong></td>
+                            <td>GR86-025-47</td>
+                            <td>6</td>
+                            <td>169.138s</td>
+                            <td>186.860s</td>
+                            <td>85.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>10</strong></td>
+                            <td>GR86-051-71</td>
+                            <td>6</td>
+                            <td>169.178s</td>
+                            <td>186.939s</td>
+                            <td>85.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>11</strong></td>
+                            <td>GR86-004-78</td>
+                            <td>6</td>
+                            <td>169.323s</td>
+                            <td>186.566s</td>
+                            <td>86.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>12</strong></td>
+                            <td>GR86-037-03</td>
+                            <td>6</td>
+                            <td>169.445s</td>
+                            <td>185.597s</td>
+                            <td>85.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>13</strong></td>
+                            <td>GR86-028-89</td>
+                            <td>6</td>
+                            <td>169.508s</td>
+                            <td>187.400s</td>
+                            <td>86.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>14</strong></td>
+                            <td>GR86-026-72</td>
+                            <td>6</td>
+                            <td>169.591s</td>
+                            <td>187.877s</td>
+                            <td>86.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>15</strong></td>
+                            <td>GR86-049-88</td>
+                            <td>8</td>
+                            <td>169.786s</td>
+                            <td>182.423s</td>
+                            <td>87.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>16</strong></td>
+                            <td>GR86-032-15</td>
+                            <td>6</td>
+                            <td>169.815s</td>
+                            <td>187.563s</td>
+                            <td>86.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>17</strong></td>
+                            <td>GR86-040-3</td>
+                            <td>6</td>
+                            <td>169.895s</td>
+                            <td>186.828s</td>
+                            <td>86.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>18</strong></td>
+                            <td>GR86-063-113</td>
+                            <td>6</td>
+                            <td>169.981s</td>
+                            <td>187.110s</td>
+                            <td>86.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>19</strong></td>
+                            <td>GR86-065-5</td>
+                            <td>8</td>
+                            <td>170.036s</td>
+                            <td>194.760s</td>
+                            <td>86.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>20</strong></td>
+                            <td>GR86-024-41</td>
+                            <td>6</td>
+                            <td>170.604s</td>
+                            <td>187.264s</td>
+                            <td>86.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>21</strong></td>
+                            <td>GR86-035-11</td>
+                            <td>6</td>
+                            <td>170.619s</td>
+                            <td>187.527s</td>
+                            <td>86.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>22</strong></td>
+                            <td>GR86-021-86</td>
+                            <td>5</td>
+                            <td>173.620s</td>
+                            <td>191.852s</td>
+                            <td>86.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>23</strong></td>
+                            <td>GR86-062-012</td>
+                            <td>5</td>
+                            <td>173.959s</td>
+                            <td>192.201s</td>
+                            <td>86.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>24</strong></td>
+                            <td>GR86-012-8</td>
+                            <td>5</td>
+                            <td>174.403s</td>
+                            <td>192.357s</td>
+                            <td>86.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>25</strong></td>
+                            <td>GR86-013-80</td>
+                            <td>5</td>
+                            <td>176.175s</td>
+                            <td>204.414s</td>
+                            <td>86.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>26</strong></td>
+                            <td>GR86-057-57</td>
+                            <td>5</td>
+                            <td>176.392s</td>
+                            <td>193.856s</td>
+                            <td>87.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>27</strong></td>
+                            <td>GR86-030-18</td>
+                            <td>5</td>
+                            <td>180.659s</td>
+                            <td>195.893s</td>
+                            <td>88.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 class="section-title">Strategic Insights & Alerts</h3>
+            <div class="insights">
+
+                <div class="insight low">
+                    <strong>[LOW]</strong>
+                    <span class="insight-text">GR86-028-89: Improving pace - excellent tire management</span>
+                </div>
+
+                <div class="insight low">
+                    <strong>[LOW]</strong>
+                    <span class="insight-text">GR86-004-78: Improving pace - excellent tire management</span>
+                </div>
+
+                <div class="insight low">
+                    <strong>[LOW]</strong>
+                    <span class="insight-text">GR86-024-41: Improving pace - excellent tire management</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Race 8 -->
+        <div class="race-section">
+            <div class="race-title">ROAD AMERICA - Race 2</div>
+            
+            <div class="race-info">
+                <div class="race-info-box">
+                    <div class="race-info-label">Current Lap</div>
+                    <div class="race-info-value">17</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Total Drivers</div>
+                    <div class="race-info-value">26</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Insights</div>
+                    <div class="race-info-value">2</div>
+                </div>
+            </div>
+            
+            <h3 class="section-title">Podium - Top 3 Performers</h3>
+            <div class="podium">
+
+                <div class="podium-position first">
+                    <div class="podium-medal">🥇</div>
+                    <div class="podium-car">GR86-010-16</div>
+                    <div class="podium-time">39.941s</div>
+                </div>
+
+                <div class="podium-position second">
+                    <div class="podium-medal">🥈</div>
+                    <div class="podium-car">GR86-063-113</div>
+                    <div class="podium-time">96.180s</div>
+                </div>
+
+                <div class="podium-position third">
+                    <div class="podium-medal">🥉</div>
+                    <div class="podium-car">GR86-015-31</div>
+                    <div class="podium-time">146.184s</div>
+                </div>
+
+            </div>
+            
+            <h3 class="section-title">Full Race Standings</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Car ID</th>
+                            <th>Laps</th>
+                            <th>Best Lap</th>
+                            <th>Avg Lap</th>
+                            <th>Consistency</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td>GR86-010-16</td>
+                            <td>5</td>
+                            <td>39.941s</td>
+                            <td>115.545s</td>
+                            <td>50.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td>GR86-063-113</td>
+                            <td>16</td>
+                            <td>96.180s</td>
+                            <td>167.172s</td>
+                            <td>69.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td>GR86-015-31</td>
+                            <td>16</td>
+                            <td>146.184s</td>
+                            <td>166.672s</td>
+                            <td>78.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td>GR86-016-55</td>
+                            <td>18</td>
+                            <td>151.580s</td>
+                            <td>165.259s</td>
+                            <td>79.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td>GR86-037-03</td>
+                            <td>16</td>
+                            <td>151.608s</td>
+                            <td>166.810s</td>
+                            <td>78.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>6</strong></td>
+                            <td>GR86-025-47</td>
+                            <td>18</td>
+                            <td>151.685s</td>
+                            <td>165.425s</td>
+                            <td>79.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>7</strong></td>
+                            <td>GR86-002-2</td>
+                            <td>16</td>
+                            <td>151.687s</td>
+                            <td>166.632s</td>
+                            <td>78.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>8</strong></td>
+                            <td>GR86-036-98</td>
+                            <td>16</td>
+                            <td>151.725s</td>
+                            <td>166.832s</td>
+                            <td>78.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>9</strong></td>
+                            <td>GR86-026-72</td>
+                            <td>16</td>
+                            <td>151.776s</td>
+                            <td>166.761s</td>
+                            <td>78.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>10</strong></td>
+                            <td>GR86-022-13</td>
+                            <td>16</td>
+                            <td>151.837s</td>
+                            <td>166.804s</td>
+                            <td>78.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>11</strong></td>
+                            <td>GR86-006-7</td>
+                            <td>16</td>
+                            <td>151.870s</td>
+                            <td>166.842s</td>
+                            <td>78.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>12</strong></td>
+                            <td>GR86-024-41</td>
+                            <td>18</td>
+                            <td>152.535s</td>
+                            <td>166.500s</td>
+                            <td>79.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>13</strong></td>
+                            <td>GR86-047-21</td>
+                            <td>16</td>
+                            <td>152.618s</td>
+                            <td>167.988s</td>
+                            <td>78.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>14</strong></td>
+                            <td>GR86-049-88</td>
+                            <td>16</td>
+                            <td>152.627s</td>
+                            <td>167.213s</td>
+                            <td>78.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>15</strong></td>
+                            <td>GR86-051-71</td>
+                            <td>3</td>
+                            <td>152.752s</td>
+                            <td>154.572s</td>
+                            <td>98.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>16</strong></td>
+                            <td>GR86-004-78</td>
+                            <td>18</td>
+                            <td>152.789s</td>
+                            <td>177.817s</td>
+                            <td>74.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>17</strong></td>
+                            <td>GR86-040-3</td>
+                            <td>18</td>
+                            <td>152.895s</td>
+                            <td>166.127s</td>
+                            <td>79.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>18</strong></td>
+                            <td>GR86-065-5</td>
+                            <td>16</td>
+                            <td>153.283s</td>
+                            <td>167.999s</td>
+                            <td>79.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>19</strong></td>
+                            <td>GR86-028-89</td>
+                            <td>16</td>
+                            <td>153.423s</td>
+                            <td>167.956s</td>
+                            <td>78.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>20</strong></td>
+                            <td>GR86-035-11</td>
+                            <td>16</td>
+                            <td>154.607s</td>
+                            <td>168.613s</td>
+                            <td>79.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>21</strong></td>
+                            <td>GR86-013-80</td>
+                            <td>15</td>
+                            <td>154.795s</td>
+                            <td>170.046s</td>
+                            <td>82.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>22</strong></td>
+                            <td>GR86-021-86</td>
+                            <td>15</td>
+                            <td>155.361s</td>
+                            <td>170.083s</td>
+                            <td>79.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>23</strong></td>
+                            <td>GR86-012-8</td>
+                            <td>17</td>
+                            <td>155.675s</td>
+                            <td>174.877s</td>
+                            <td>79.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>24</strong></td>
+                            <td>GR86-062-012</td>
+                            <td>14</td>
+                            <td>156.009s</td>
+                            <td>169.283s</td>
+                            <td>82.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>25</strong></td>
+                            <td>GR86-057-57</td>
+                            <td>17</td>
+                            <td>159.221s</td>
+                            <td>171.319s</td>
+                            <td>82.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>26</strong></td>
+                            <td>GR86-030-18</td>
+                            <td>15</td>
+                            <td>160.503s</td>
+                            <td>173.347s</td>
+                            <td>82.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 class="section-title">Strategic Insights & Alerts</h3>
+            <div class="insights">
+
+                <div class="insight low">
+                    <strong>[LOW]</strong>
+                    <span class="insight-text">GR86-022-13: Improving pace - excellent tire management</span>
+                </div>
+
+                <div class="insight low">
+                    <strong>[LOW]</strong>
+                    <span class="insight-text">GR86-004-78: Improving pace - excellent tire management</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Race 9 -->
+        <div class="race-section">
+            <div class="race-title">SEBRING - Race 1</div>
+            
+            <div class="race-info">
+                <div class="race-info-box">
+                    <div class="race-info-label">Current Lap</div>
+                    <div class="race-info-value">21</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Total Drivers</div>
+                    <div class="race-info-value">21</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Insights</div>
+                    <div class="race-info-value">2</div>
+                </div>
+            </div>
+            
+            <h3 class="section-title">Podium - Top 3 Performers</h3>
+            <div class="podium">
+
+                <div class="podium-position first">
+                    <div class="podium-medal">🥇</div>
+                    <div class="podium-car">GR86-036-98</div>
+                    <div class="podium-time">34.057s</div>
+                </div>
+
+                <div class="podium-position second">
+                    <div class="podium-medal">🥈</div>
+                    <div class="podium-car">GR86-010-16</div>
+                    <div class="podium-time">130.366s</div>
+                </div>
+
+                <div class="podium-position third">
+                    <div class="podium-medal">🥉</div>
+                    <div class="podium-car">GR86-022-13</div>
+                    <div class="podium-time">145.541s</div>
+                </div>
+
+            </div>
+            
+            <h3 class="section-title">Full Race Standings</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Car ID</th>
+                            <th>Laps</th>
+                            <th>Best Lap</th>
+                            <th>Avg Lap</th>
+                            <th>Consistency</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td>GR86-036-98</td>
+                            <td>24</td>
+                            <td>34.057s</td>
+                            <td>155.057s</td>
+                            <td>75.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td>GR86-010-16</td>
+                            <td>21</td>
+                            <td>130.366s</td>
+                            <td>146.915s</td>
+                            <td>96.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td>GR86-022-13</td>
+                            <td>25</td>
+                            <td>145.541s</td>
+                            <td>146.480s</td>
+                            <td>99.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td>GR86-033-46</td>
+                            <td>19</td>
+                            <td>145.593s</td>
+                            <td>146.900s</td>
+                            <td>99.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td>GR86-026-72</td>
+                            <td>20</td>
+                            <td>145.970s</td>
+                            <td>150.656s</td>
+                            <td>89.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>6</strong></td>
+                            <td>GR86-006-7</td>
+                            <td>27</td>
+                            <td>146.165s</td>
+                            <td>146.883s</td>
+                            <td>99.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>7</strong></td>
+                            <td>GR86-060-031</td>
+                            <td>22</td>
+                            <td>146.387s</td>
+                            <td>150.382s</td>
+                            <td>91.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>8</strong></td>
+                            <td>GR86-016-55</td>
+                            <td>24</td>
+                            <td>146.626s</td>
+                            <td>150.427s</td>
+                            <td>90.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>9</strong></td>
+                            <td>GR86-032-15</td>
+                            <td>22</td>
+                            <td>146.748s</td>
+                            <td>150.841s</td>
+                            <td>92.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>10</strong></td>
+                            <td>GR86-049-88</td>
+                            <td>21</td>
+                            <td>147.168s</td>
+                            <td>149.886s</td>
+                            <td>98.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>11</strong></td>
+                            <td>GR86-047-21</td>
+                            <td>21</td>
+                            <td>147.249s</td>
+                            <td>148.656s</td>
+                            <td>99.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>12</strong></td>
+                            <td>GR86-024-41</td>
+                            <td>19</td>
+                            <td>147.255s</td>
+                            <td>153.564s</td>
+                            <td>90.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>13</strong></td>
+                            <td>GR86-015-31</td>
+                            <td>17</td>
+                            <td>147.266s</td>
+                            <td>156.141s</td>
+                            <td>82.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>14</strong></td>
+                            <td>GR86-063-113</td>
+                            <td>21</td>
+                            <td>147.368s</td>
+                            <td>148.705s</td>
+                            <td>98.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>15</strong></td>
+                            <td>GR86-051-71</td>
+                            <td>19</td>
+                            <td>147.664s</td>
+                            <td>148.851s</td>
+                            <td>99.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>16</strong></td>
+                            <td>GR86-065-5</td>
+                            <td>6</td>
+                            <td>147.696s</td>
+                            <td>169.416s</td>
+                            <td>80.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>17</strong></td>
+                            <td>GR86-025-47</td>
+                            <td>21</td>
+                            <td>147.709s</td>
+                            <td>150.951s</td>
+                            <td>96.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>18</strong></td>
+                            <td>GR86-035-11</td>
+                            <td>19</td>
+                            <td>148.132s</td>
+                            <td>150.056s</td>
+                            <td>98.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>19</strong></td>
+                            <td>GR86-013-80</td>
+                            <td>20</td>
+                            <td>148.596s</td>
+                            <td>149.873s</td>
+                            <td>98.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>20</strong></td>
+                            <td>GR86-040-3</td>
+                            <td>21</td>
+                            <td>148.606s</td>
+                            <td>149.551s</td>
+                            <td>98.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>21</strong></td>
+                            <td>GR86-061-51</td>
+                            <td>19</td>
+                            <td>148.813s</td>
+                            <td>151.169s</td>
+                            <td>97.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 class="section-title">Strategic Insights & Alerts</h3>
+            <div class="insights">
+
+                <div class="insight medium">
+                    <strong>[MEDIUM]</strong>
+                    <span class="insight-text">GR86-010-16: Lap times degrading - possible tire wear</span>
+                </div>
+
+                <div class="insight low">
+                    <strong>[LOW]</strong>
+                    <span class="insight-text">GR86-013-80: Improving pace - excellent tire management</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Race 10 -->
+        <div class="race-section">
+            <div class="race-title">SEBRING - Race 2</div>
+            
+            <div class="race-info">
+                <div class="race-info-box">
+                    <div class="race-info-label">Current Lap</div>
+                    <div class="race-info-value">32768</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Total Drivers</div>
+                    <div class="race-info-value">20</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Insights</div>
+                    <div class="race-info-value">5</div>
+                </div>
+            </div>
+            
+            <h3 class="section-title">Podium - Top 3 Performers</h3>
+            <div class="podium">
+
+                <div class="podium-position first">
+                    <div class="podium-medal">🥇</div>
+                    <div class="podium-car">GR86-036-98</div>
+                    <div class="podium-time">33.218s</div>
+                </div>
+
+                <div class="podium-position second">
+                    <div class="podium-medal">🥈</div>
+                    <div class="podium-car">GR86-035-11</div>
+                    <div class="podium-time">33.708s</div>
+                </div>
+
+                <div class="podium-position third">
+                    <div class="podium-medal">🥉</div>
+                    <div class="podium-car">GR86-063-113</div>
+                    <div class="podium-time">39.938s</div>
+                </div>
+
+            </div>
+            
+            <h3 class="section-title">Full Race Standings</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Car ID</th>
+                            <th>Laps</th>
+                            <th>Best Lap</th>
+                            <th>Avg Lap</th>
+                            <th>Consistency</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td>GR86-036-98</td>
+                            <td>18</td>
+                            <td>33.218s</td>
+                            <td>150.758s</td>
+                            <td>72.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td>GR86-035-11</td>
+                            <td>17</td>
+                            <td>33.708s</td>
+                            <td>146.447s</td>
+                            <td>76.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td>GR86-063-113</td>
+                            <td>18</td>
+                            <td>39.938s</td>
+                            <td>153.180s</td>
+                            <td>72.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td>GR86-010-16</td>
+                            <td>22</td>
+                            <td>40.040s</td>
+                            <td>147.716s</td>
+                            <td>77.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td>GR86-022-13</td>
+                            <td>18</td>
+                            <td>145.096s</td>
+                            <td>150.251s</td>
+                            <td>87.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>6</strong></td>
+                            <td>GR86-026-72</td>
+                            <td>20</td>
+                            <td>145.261s</td>
+                            <td>150.295s</td>
+                            <td>88.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>7</strong></td>
+                            <td>GR86-006-7</td>
+                            <td>27</td>
+                            <td>145.312s</td>
+                            <td>149.174s</td>
+                            <td>89.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>8</strong></td>
+                            <td>GR86-033-46</td>
+                            <td>16</td>
+                            <td>145.552s</td>
+                            <td>151.421s</td>
+                            <td>87.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>9</strong></td>
+                            <td>GR86-032-15</td>
+                            <td>21</td>
+                            <td>145.763s</td>
+                            <td>151.226s</td>
+                            <td>89.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>10</strong></td>
+                            <td>GR86-016-55</td>
+                            <td>22</td>
+                            <td>145.855s</td>
+                            <td>153.400s</td>
+                            <td>86.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>11</strong></td>
+                            <td>GR86-060-031</td>
+                            <td>19</td>
+                            <td>145.897s</td>
+                            <td>157.035s</td>
+                            <td>80.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>12</strong></td>
+                            <td>GR86-051-71</td>
+                            <td>18</td>
+                            <td>146.083s</td>
+                            <td>151.661s</td>
+                            <td>88.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>13</strong></td>
+                            <td>GR86-047-21</td>
+                            <td>16</td>
+                            <td>146.501s</td>
+                            <td>152.459s</td>
+                            <td>88.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>14</strong></td>
+                            <td>GR86-024-41</td>
+                            <td>18</td>
+                            <td>146.562s</td>
+                            <td>154.394s</td>
+                            <td>88.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>15</strong></td>
+                            <td>GR86-049-88</td>
+                            <td>20</td>
+                            <td>146.896s</td>
+                            <td>152.593s</td>
+                            <td>89.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>16</strong></td>
+                            <td>GR86-015-31</td>
+                            <td>16</td>
+                            <td>146.913s</td>
+                            <td>174.221s</td>
+                            <td>71.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>17</strong></td>
+                            <td>GR86-065-5</td>
+                            <td>21</td>
+                            <td>147.021s</td>
+                            <td>154.970s</td>
+                            <td>88.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>18</strong></td>
+                            <td>GR86-025-47</td>
+                            <td>14</td>
+                            <td>147.213s</td>
+                            <td>157.903s</td>
+                            <td>85.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>19</strong></td>
+                            <td>GR86-061-51</td>
+                            <td>19</td>
+                            <td>147.486s</td>
+                            <td>155.417s</td>
+                            <td>87.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>20</strong></td>
+                            <td>GR86-040-3</td>
+                            <td>16</td>
+                            <td>147.532s</td>
+                            <td>153.555s</td>
+                            <td>88.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 class="section-title">Strategic Insights & Alerts</h3>
+            <div class="insights">
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-006-7: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-010-16: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-015-31: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-016-55: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-022-13: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Race 11 -->
+        <div class="race-section">
+            <div class="race-title">SONOMA - Race 1</div>
+            
+            <div class="race-info">
+                <div class="race-info-box">
+                    <div class="race-info-label">Current Lap</div>
+                    <div class="race-info-value">32768</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Total Drivers</div>
+                    <div class="race-info-value">31</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Insights</div>
+                    <div class="race-info-value">5</div>
+                </div>
+            </div>
+            
+            <h3 class="section-title">Podium - Top 3 Performers</h3>
+            <div class="podium">
+
+                <div class="podium-position first">
+                    <div class="podium-medal">🥇</div>
+                    <div class="podium-car">GR86-025-047</div>
+                    <div class="podium-time">32.139s</div>
+                </div>
+
+                <div class="podium-position second">
+                    <div class="podium-medal">🥈</div>
+                    <div class="podium-car">GR86-041-073</div>
+                    <div class="podium-time">32.818s</div>
+                </div>
+
+                <div class="podium-position third">
+                    <div class="podium-medal">🥉</div>
+                    <div class="podium-car">GR86-029-014</div>
+                    <div class="podium-time">32.957s</div>
+                </div>
+
+            </div>
+            
+            <h3 class="section-title">Full Race Standings</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Car ID</th>
+                            <th>Laps</th>
+                            <th>Best Lap</th>
+                            <th>Avg Lap</th>
+                            <th>Consistency</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td>GR86-025-047</td>
+                            <td>28</td>
+                            <td>32.139s</td>
+                            <td>123.067s</td>
+                            <td>71.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td>GR86-041-073</td>
+                            <td>30</td>
+                            <td>32.818s</td>
+                            <td>124.618s</td>
+                            <td>77.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td>GR86-029-014</td>
+                            <td>28</td>
+                            <td>32.957s</td>
+                            <td>119.391s</td>
+                            <td>73.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td>GR86-036-098</td>
+                            <td>33</td>
+                            <td>33.115s</td>
+                            <td>116.296s</td>
+                            <td>63.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td>GR86-033-046</td>
+                            <td>24</td>
+                            <td>33.289s</td>
+                            <td>118.232s</td>
+                            <td>77.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>6</strong></td>
+                            <td>GR86-016-055</td>
+                            <td>31</td>
+                            <td>33.339s</td>
+                            <td>121.749s</td>
+                            <td>67.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>7</strong></td>
+                            <td>GR86-008-113</td>
+                            <td>20</td>
+                            <td>39.298s</td>
+                            <td>133.983s</td>
+                            <td>44.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>8</strong></td>
+                            <td>GR86-015-031</td>
+                            <td>31</td>
+                            <td>40.040s</td>
+                            <td>127.346s</td>
+                            <td>76.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>9</strong></td>
+                            <td>GR86-062-012</td>
+                            <td>29</td>
+                            <td>40.089s</td>
+                            <td>128.648s</td>
+                            <td>67.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>10</strong></td>
+                            <td>GR86-022-013</td>
+                            <td>26</td>
+                            <td>63.370s</td>
+                            <td>122.142s</td>
+                            <td>79.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>11</strong></td>
+                            <td>GR86-028-089</td>
+                            <td>28</td>
+                            <td>64.832s</td>
+                            <td>124.649s</td>
+                            <td>78.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>12</strong></td>
+                            <td>GR86-003-017</td>
+                            <td>30</td>
+                            <td>82.049s</td>
+                            <td>126.221s</td>
+                            <td>81.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>13</strong></td>
+                            <td>GR86-047-021</td>
+                            <td>25</td>
+                            <td>107.774s</td>
+                            <td>134.642s</td>
+                            <td>76.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>14</strong></td>
+                            <td>GR86-026-072</td>
+                            <td>25</td>
+                            <td>111.565s</td>
+                            <td>127.552s</td>
+                            <td>82.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>15</strong></td>
+                            <td>GR86-004-078</td>
+                            <td>25</td>
+                            <td>111.961s</td>
+                            <td>125.930s</td>
+                            <td>81.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>16</strong></td>
+                            <td>GR86-002-002</td>
+                            <td>25</td>
+                            <td>112.010s</td>
+                            <td>124.746s</td>
+                            <td>82.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>17</strong></td>
+                            <td>GR86-010-016</td>
+                            <td>25</td>
+                            <td>112.131s</td>
+                            <td>127.610s</td>
+                            <td>76.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>18</strong></td>
+                            <td>GR86-006-007</td>
+                            <td>27</td>
+                            <td>112.204s</td>
+                            <td>125.188s</td>
+                            <td>82.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>19</strong></td>
+                            <td>GR86-049-088</td>
+                            <td>37</td>
+                            <td>112.435s</td>
+                            <td>123.805s</td>
+                            <td>82.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>20</strong></td>
+                            <td>GR86-051-071</td>
+                            <td>25</td>
+                            <td>112.779s</td>
+                            <td>125.967s</td>
+                            <td>82.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>21</strong></td>
+                            <td>GR86-050-050</td>
+                            <td>28</td>
+                            <td>112.908s</td>
+                            <td>129.743s</td>
+                            <td>81.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>22</strong></td>
+                            <td>GR86-024-041</td>
+                            <td>7</td>
+                            <td>113.523s</td>
+                            <td>136.469s</td>
+                            <td>79.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>23</strong></td>
+                            <td>GR86-032-015</td>
+                            <td>26</td>
+                            <td>113.857s</td>
+                            <td>135.123s</td>
+                            <td>77.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>24</strong></td>
+                            <td>GR86-038-093</td>
+                            <td>27</td>
+                            <td>113.905s</td>
+                            <td>129.668s</td>
+                            <td>81.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>25</strong></td>
+                            <td>GR86-061-051</td>
+                            <td>27</td>
+                            <td>113.988s</td>
+                            <td>128.787s</td>
+                            <td>81.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>26</strong></td>
+                            <td>GR86-037-003</td>
+                            <td>32</td>
+                            <td>114.076s</td>
+                            <td>134.252s</td>
+                            <td>81.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>27</strong></td>
+                            <td>GR86-009-005</td>
+                            <td>16</td>
+                            <td>114.320s</td>
+                            <td>129.706s</td>
+                            <td>84.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>28</strong></td>
+                            <td>GR86-040-003</td>
+                            <td>28</td>
+                            <td>114.394s</td>
+                            <td>130.125s</td>
+                            <td>81.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>29</strong></td>
+                            <td>GR86-017-067</td>
+                            <td>10</td>
+                            <td>114.574s</td>
+                            <td>138.401s</td>
+                            <td>83.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>30</strong></td>
+                            <td>GR86-035-011</td>
+                            <td>27</td>
+                            <td>114.586s</td>
+                            <td>129.028s</td>
+                            <td>82.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>31</strong></td>
+                            <td>GR86-013-080</td>
+                            <td>31</td>
+                            <td>115.818s</td>
+                            <td>130.846s</td>
+                            <td>80.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 class="section-title">Strategic Insights & Alerts</h3>
+            <div class="insights">
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-002-002: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-003-017: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-004-078: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-006-007: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-008-113: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Race 12 -->
+        <div class="race-section">
+            <div class="race-title">SONOMA - Race 2</div>
+            
+            <div class="race-info">
+                <div class="race-info-box">
+                    <div class="race-info-label">Current Lap</div>
+                    <div class="race-info-value">32768</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Total Drivers</div>
+                    <div class="race-info-value">31</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Insights</div>
+                    <div class="race-info-value">5</div>
+                </div>
+            </div>
+            
+            <h3 class="section-title">Podium - Top 3 Performers</h3>
+            <div class="podium">
+
+                <div class="podium-position first">
+                    <div class="podium-medal">🥇</div>
+                    <div class="podium-car">GR86-033-046</div>
+                    <div class="podium-time">81.406s</div>
+                </div>
+
+                <div class="podium-position second">
+                    <div class="podium-medal">🥈</div>
+                    <div class="podium-car">GR86-006-007</div>
+                    <div class="podium-time">112.500s</div>
+                </div>
+
+                <div class="podium-position third">
+                    <div class="podium-medal">🥉</div>
+                    <div class="podium-car">GR86-002-002</div>
+                    <div class="podium-time">112.569s</div>
+                </div>
+
+            </div>
+            
+            <h3 class="section-title">Full Race Standings</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Car ID</th>
+                            <th>Laps</th>
+                            <th>Best Lap</th>
+                            <th>Avg Lap</th>
+                            <th>Consistency</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td>GR86-033-046</td>
+                            <td>6</td>
+                            <td>81.406s</td>
+                            <td>117.463s</td>
+                            <td>77.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td>GR86-006-007</td>
+                            <td>21</td>
+                            <td>112.500s</td>
+                            <td>124.591s</td>
+                            <td>85.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td>GR86-002-002</td>
+                            <td>23</td>
+                            <td>112.569s</td>
+                            <td>125.019s</td>
+                            <td>85.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td>GR86-010-016</td>
+                            <td>21</td>
+                            <td>112.807s</td>
+                            <td>124.563s</td>
+                            <td>86.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td>GR86-016-055</td>
+                            <td>21</td>
+                            <td>112.845s</td>
+                            <td>124.700s</td>
+                            <td>85.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>6</strong></td>
+                            <td>GR86-022-013</td>
+                            <td>21</td>
+                            <td>112.845s</td>
+                            <td>124.433s</td>
+                            <td>86.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>7</strong></td>
+                            <td>GR86-004-078</td>
+                            <td>21</td>
+                            <td>113.085s</td>
+                            <td>124.785s</td>
+                            <td>85.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>8</strong></td>
+                            <td>GR86-026-072</td>
+                            <td>21</td>
+                            <td>113.106s</td>
+                            <td>124.651s</td>
+                            <td>86.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>9</strong></td>
+                            <td>GR86-025-047</td>
+                            <td>21</td>
+                            <td>113.110s</td>
+                            <td>124.928s</td>
+                            <td>86.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>10</strong></td>
+                            <td>GR86-051-071</td>
+                            <td>21</td>
+                            <td>113.113s</td>
+                            <td>124.744s</td>
+                            <td>85.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>11</strong></td>
+                            <td>GR86-008-113</td>
+                            <td>22</td>
+                            <td>113.162s</td>
+                            <td>124.887s</td>
+                            <td>88.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>12</strong></td>
+                            <td>GR86-049-088</td>
+                            <td>20</td>
+                            <td>113.418s</td>
+                            <td>127.579s</td>
+                            <td>86.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>13</strong></td>
+                            <td>GR86-028-089</td>
+                            <td>25</td>
+                            <td>113.428s</td>
+                            <td>126.791s</td>
+                            <td>85.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>14</strong></td>
+                            <td>GR86-015-031</td>
+                            <td>25</td>
+                            <td>113.496s</td>
+                            <td>125.994s</td>
+                            <td>86.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>15</strong></td>
+                            <td>GR86-050-050</td>
+                            <td>26</td>
+                            <td>113.519s</td>
+                            <td>127.663s</td>
+                            <td>85.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>16</strong></td>
+                            <td>GR86-036-098</td>
+                            <td>25</td>
+                            <td>113.652s</td>
+                            <td>124.966s</td>
+                            <td>86.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>17</strong></td>
+                            <td>GR86-047-021</td>
+                            <td>21</td>
+                            <td>113.709s</td>
+                            <td>125.388s</td>
+                            <td>87.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>18</strong></td>
+                            <td>GR86-029-014</td>
+                            <td>21</td>
+                            <td>113.736s</td>
+                            <td>124.466s</td>
+                            <td>87.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>19</strong></td>
+                            <td>GR86-032-015</td>
+                            <td>26</td>
+                            <td>113.818s</td>
+                            <td>127.361s</td>
+                            <td>86.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>20</strong></td>
+                            <td>GR86-024-041</td>
+                            <td>20</td>
+                            <td>114.280s</td>
+                            <td>125.934s</td>
+                            <td>87.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>21</strong></td>
+                            <td>GR86-061-051</td>
+                            <td>20</td>
+                            <td>114.289s</td>
+                            <td>125.690s</td>
+                            <td>87.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>22</strong></td>
+                            <td>GR86-041-073</td>
+                            <td>25</td>
+                            <td>114.375s</td>
+                            <td>126.413s</td>
+                            <td>87.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>23</strong></td>
+                            <td>GR86-038-093</td>
+                            <td>21</td>
+                            <td>114.599s</td>
+                            <td>124.925s</td>
+                            <td>88.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>24</strong></td>
+                            <td>GR86-003-017</td>
+                            <td>20</td>
+                            <td>114.800s</td>
+                            <td>126.514s</td>
+                            <td>87.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>25</strong></td>
+                            <td>GR86-035-011</td>
+                            <td>22</td>
+                            <td>114.921s</td>
+                            <td>125.208s</td>
+                            <td>88.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>26</strong></td>
+                            <td>GR86-017-067</td>
+                            <td>20</td>
+                            <td>114.950s</td>
+                            <td>125.776s</td>
+                            <td>88.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>27</strong></td>
+                            <td>GR86-040-003</td>
+                            <td>20</td>
+                            <td>115.116s</td>
+                            <td>126.364s</td>
+                            <td>87.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>28</strong></td>
+                            <td>GR86-037-003</td>
+                            <td>24</td>
+                            <td>115.311s</td>
+                            <td>126.025s</td>
+                            <td>86.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>29</strong></td>
+                            <td>GR86-009-005</td>
+                            <td>10</td>
+                            <td>116.909s</td>
+                            <td>127.061s</td>
+                            <td>90.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>30</strong></td>
+                            <td>GR86-013-080</td>
+                            <td>20</td>
+                            <td>117.688s</td>
+                            <td>126.643s</td>
+                            <td>89.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>31</strong></td>
+                            <td>GR86-062-012</td>
+                            <td>20</td>
+                            <td>117.694s</td>
+                            <td>126.257s</td>
+                            <td>90.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 class="section-title">Strategic Insights & Alerts</h3>
+            <div class="insights">
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-002-002: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-003-017: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-004-078: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-006-007: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+                <div class="insight high">
+                    <strong>[HIGH]</strong>
+                    <span class="insight-text">GR86-008-113: PIT NOW - tires critical (-32736.8 laps remaining)</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Race 13 -->
+        <div class="race-section">
+            <div class="race-title">VIR - Race 1</div>
+            
+            <div class="race-info">
+                <div class="race-info-box">
+                    <div class="race-info-label">Current Lap</div>
+                    <div class="race-info-value">22</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Total Drivers</div>
+                    <div class="race-info-value">21</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Insights</div>
+                    <div class="race-info-value">2</div>
+                </div>
+            </div>
+            
+            <h3 class="section-title">Podium - Top 3 Performers</h3>
+            <div class="podium">
+
+                <div class="podium-position first">
+                    <div class="podium-medal">🥇</div>
+                    <div class="podium-car">GR86-049-88</div>
+                    <div class="podium-time">39.431s</div>
+                </div>
+
+                <div class="podium-position second">
+                    <div class="podium-medal">🥈</div>
+                    <div class="podium-car">GR86-032-15</div>
+                    <div class="podium-time">128.418s</div>
+                </div>
+
+                <div class="podium-position third">
+                    <div class="podium-medal">🥉</div>
+                    <div class="podium-car">GR86-022-13</div>
+                    <div class="podium-time">128.466s</div>
+                </div>
+
+            </div>
+            
+            <h3 class="section-title">Full Race Standings</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Car ID</th>
+                            <th>Laps</th>
+                            <th>Best Lap</th>
+                            <th>Avg Lap</th>
+                            <th>Consistency</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td>GR86-049-88</td>
+                            <td>34</td>
+                            <td>39.431s</td>
+                            <td>152.431s</td>
+                            <td>74.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td>GR86-032-15</td>
+                            <td>13</td>
+                            <td>128.418s</td>
+                            <td>136.317s</td>
+                            <td>88.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td>GR86-022-13</td>
+                            <td>23</td>
+                            <td>128.466s</td>
+                            <td>139.304s</td>
+                            <td>82.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td>GR86-033-46</td>
+                            <td>25</td>
+                            <td>128.485s</td>
+                            <td>138.296s</td>
+                            <td>82.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td>GR86-016-55</td>
+                            <td>21</td>
+                            <td>128.495s</td>
+                            <td>140.668s</td>
+                            <td>81.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>6</strong></td>
+                            <td>GR86-026-72</td>
+                            <td>26</td>
+                            <td>128.510s</td>
+                            <td>149.709s</td>
+                            <td>77.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>7</strong></td>
+                            <td>GR86-006-7</td>
+                            <td>22</td>
+                            <td>128.680s</td>
+                            <td>145.201s</td>
+                            <td>76.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>8</strong></td>
+                            <td>GR86-002-2</td>
+                            <td>22</td>
+                            <td>128.984s</td>
+                            <td>140.525s</td>
+                            <td>81.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>9</strong></td>
+                            <td>GR86-015-31</td>
+                            <td>22</td>
+                            <td>129.041s</td>
+                            <td>145.939s</td>
+                            <td>76.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>10</strong></td>
+                            <td>GR86-051-71</td>
+                            <td>23</td>
+                            <td>129.114s</td>
+                            <td>144.224s</td>
+                            <td>79.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>11</strong></td>
+                            <td>GR86-047-21</td>
+                            <td>21</td>
+                            <td>129.276s</td>
+                            <td>140.832s</td>
+                            <td>82.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>12</strong></td>
+                            <td>GR86-063-113</td>
+                            <td>25</td>
+                            <td>129.343s</td>
+                            <td>139.329s</td>
+                            <td>83.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>13</strong></td>
+                            <td>GR86-040-3</td>
+                            <td>21</td>
+                            <td>129.784s</td>
+                            <td>141.690s</td>
+                            <td>83.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>14</strong></td>
+                            <td>GR86-024-41</td>
+                            <td>23</td>
+                            <td>129.845s</td>
+                            <td>144.683s</td>
+                            <td>81.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>15</strong></td>
+                            <td>GR86-065-5</td>
+                            <td>23</td>
+                            <td>130.183s</td>
+                            <td>140.385s</td>
+                            <td>83.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>16</strong></td>
+                            <td>GR86-061-51</td>
+                            <td>25</td>
+                            <td>130.468s</td>
+                            <td>145.674s</td>
+                            <td>82.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>17</strong></td>
+                            <td>GR86-013-80</td>
+                            <td>22</td>
+                            <td>130.911s</td>
+                            <td>142.913s</td>
+                            <td>84.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>18</strong></td>
+                            <td>GR86-038-93</td>
+                            <td>27</td>
+                            <td>131.070s</td>
+                            <td>139.696s</td>
+                            <td>85.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>19</strong></td>
+                            <td>GR86-036-98</td>
+                            <td>5</td>
+                            <td>132.242s</td>
+                            <td>175.222s</td>
+                            <td>78.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>20</strong></td>
+                            <td>GR86-062-012</td>
+                            <td>29</td>
+                            <td>133.759s</td>
+                            <td>145.549s</td>
+                            <td>85.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>21</strong></td>
+                            <td>GR86-028-89</td>
+                            <td>2</td>
+                            <td>136.094s</td>
+                            <td>162.577s</td>
+                            <td>77.0%</td>
+                            <td>Active</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 class="section-title">Strategic Insights & Alerts</h3>
+            <div class="insights">
+
+                <div class="insight low">
+                    <strong>[LOW]</strong>
+                    <span class="insight-text">GR86-006-7: Improving pace - excellent tire management</span>
+                </div>
+
+                <div class="insight low">
+                    <strong>[LOW]</strong>
+                    <span class="insight-text">GR86-013-80: Improving pace - excellent tire management</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Race 14 -->
+        <div class="race-section">
+            <div class="race-title">VIR - Race 2</div>
+            
+            <div class="race-info">
+                <div class="race-info-box">
+                    <div class="race-info-label">Current Lap</div>
+                    <div class="race-info-value">23</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Total Drivers</div>
+                    <div class="race-info-value">21</div>
+                </div>
+                <div class="race-info-box">
+                    <div class="race-info-label">Insights</div>
+                    <div class="race-info-value">1</div>
+                </div>
+            </div>
+            
+            <h3 class="section-title">Podium - Top 3 Performers</h3>
+            <div class="podium">
+
+                <div class="podium-position first">
+                    <div class="podium-medal">🥇</div>
+                    <div class="podium-car">GR86-026-72</div>
+                    <div class="podium-time">128.277s</div>
+                </div>
+
+                <div class="podium-position second">
+                    <div class="podium-medal">🥈</div>
+                    <div class="podium-car">GR86-022-13</div>
+                    <div class="podium-time">128.329s</div>
+                </div>
+
+                <div class="podium-position third">
+                    <div class="podium-medal">🥉</div>
+                    <div class="podium-car">GR86-033-46</div>
+                    <div class="podium-time">128.461s</div>
+                </div>
+
+            </div>
+            
+            <h3 class="section-title">Full Race Standings</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Car ID</th>
+                            <th>Laps</th>
+                            <th>Best Lap</th>
+                            <th>Avg Lap</th>
+                            <th>Consistency</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td>GR86-026-72</td>
+                            <td>26</td>
+                            <td>128.277s</td>
+                            <td>132.463s</td>
+                            <td>89.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td>GR86-022-13</td>
+                            <td>26</td>
+                            <td>128.329s</td>
+                            <td>132.621s</td>
+                            <td>89.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td>GR86-033-46</td>
+                            <td>28</td>
+                            <td>128.461s</td>
+                            <td>132.459s</td>
+                            <td>89.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td>GR86-016-55</td>
+                            <td>22</td>
+                            <td>128.770s</td>
+                            <td>135.381s</td>
+                            <td>86.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td>GR86-006-7</td>
+                            <td>23</td>
+                            <td>128.848s</td>
+                            <td>138.970s</td>
+                            <td>77.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>6</strong></td>
+                            <td>GR86-002-2</td>
+                            <td>24</td>
+                            <td>128.901s</td>
+                            <td>132.962s</td>
+                            <td>88.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>7</strong></td>
+                            <td>GR86-051-71</td>
+                            <td>22</td>
+                            <td>128.949s</td>
+                            <td>133.109s</td>
+                            <td>88.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>8</strong></td>
+                            <td>GR86-036-98</td>
+                            <td>26</td>
+                            <td>128.971s</td>
+                            <td>132.469s</td>
+                            <td>90.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>9</strong></td>
+                            <td>GR86-049-88</td>
+                            <td>22</td>
+                            <td>129.098s</td>
+                            <td>133.273s</td>
+                            <td>89.2%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>10</strong></td>
+                            <td>GR86-063-113</td>
+                            <td>22</td>
+                            <td>129.456s</td>
+                            <td>134.053s</td>
+                            <td>89.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>11</strong></td>
+                            <td>GR86-040-3</td>
+                            <td>22</td>
+                            <td>129.580s</td>
+                            <td>133.886s</td>
+                            <td>90.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>12</strong></td>
+                            <td>GR86-032-15</td>
+                            <td>22</td>
+                            <td>129.665s</td>
+                            <td>134.198s</td>
+                            <td>89.7%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>13</strong></td>
+                            <td>GR86-065-5</td>
+                            <td>24</td>
+                            <td>129.889s</td>
+                            <td>133.718s</td>
+                            <td>90.6%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>14</strong></td>
+                            <td>GR86-038-93</td>
+                            <td>24</td>
+                            <td>129.995s</td>
+                            <td>134.080s</td>
+                            <td>91.1%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>15</strong></td>
+                            <td>GR86-024-41</td>
+                            <td>22</td>
+                            <td>129.999s</td>
+                            <td>133.870s</td>
+                            <td>90.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>16</strong></td>
+                            <td>GR86-061-51</td>
+                            <td>22</td>
+                            <td>130.654s</td>
+                            <td>135.426s</td>
+                            <td>90.9%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>17</strong></td>
+                            <td>GR86-013-80</td>
+                            <td>22</td>
+                            <td>130.795s</td>
+                            <td>134.430s</td>
+                            <td>91.4%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>18</strong></td>
+                            <td>GR86-028-89</td>
+                            <td>22</td>
+                            <td>131.346s</td>
+                            <td>136.455s</td>
+                            <td>90.5%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>19</strong></td>
+                            <td>GR86-062-012</td>
+                            <td>25</td>
+                            <td>133.830s</td>
+                            <td>135.527s</td>
+                            <td>98.8%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>20</strong></td>
+                            <td>GR86-047-21</td>
+                            <td>2</td>
+                            <td>185.677s</td>
+                            <td>190.632s</td>
+                            <td>96.3%</td>
+                            <td>Active</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>21</strong></td>
+                            <td>GR86-015-31</td>
+                            <td>1</td>
+                            <td>195.152s</td>
+                            <td>195.152s</td>
+                            <td>nan%</td>
+                            <td>Active</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 class="section-title">Strategic Insights & Alerts</h3>
+            <div class="insights">
+
+                <div class="insight low">
+                    <strong>[LOW]</strong>
+                    <span class="insight-text">GR86-006-7: Improving pace - excellent tire management</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>GR Cup Race Intelligence Dashboard</strong></p>
+            <p>Advanced analytics for multi-track racing strategy</p>
+            <p style="margin-top: 20px; opacity: 0.8; font-size: 12px;">
+                Report Generated: 2025-11-24 17:14:18
+            </p>
+        </div>
+    </div>
+</body>
+</html>
